@@ -1,6 +1,7 @@
 # mqttclient
 
 A Flutter based application that allows for notification and system calls for specific MQTT subscriptions.
+
 Allows for a single machine to be used as a smart home integrator for example.
 
 Currently, only macOS is supported.
