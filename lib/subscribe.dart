@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:mac_notifications/mac_notifications.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:mqttclient/SystemCommand.dart';
 import 'package:mqttclient/TopicWidget.dart';
+import 'package:process_run/shell.dart';
 
 class SubscribePage extends StatefulWidget {
   @override
@@ -17,8 +19,15 @@ class _SubscribePageState extends State<SubscribePage> {
   var _subscribeKey = new GlobalKey<FormState>();
   var _subscribeController = new TextEditingController();
 
+  var _commandProcController = new TextEditingController();
+  var _commandController = new TextEditingController();
+
+  var shell = Shell();
+
   List<Subscription> _subscriptionList = new List<Subscription>();
   Map<String, String> _messageList = new Map<String, String>();
+  Map<String, List<SystemCommand>> _commandList =
+      new Map<String, List<SystemCommand>>();
 
   @override
   void dispose() {
@@ -60,6 +69,20 @@ class _SubscribePageState extends State<SubscribePage> {
       setState(() {
         _messageList.addAll({c[0].topic: payload});
       });
+
+      for (var e in _commandList[c[0].topic]) {
+        if (e.commandProc == payload) {
+          print("Running command");
+          shell.run(e.commandData);
+          MacNotifications.showNotification(
+            MacNotificationOptions(
+              identifier: 'mqtt-client${DateTime.now().millisecondsSinceEpoch}',
+              title: '${c[0].topic}: Running System Command',
+              subtitle: 'Matching Message Recieved',
+            ),
+          );
+        }
+      }
     });
 
     super.initState();
@@ -128,7 +151,16 @@ class _SubscribePageState extends State<SubscribePage> {
                                       .topic
                                       .toString()] ??
                                   "No Messages Received")
-                              .toString()),
+                              .toString(),
+                          (s) => addNewCommand(
+                              _subscriptionList[index].topic.toString()),
+                          (s) => removeCommand(
+                              _subscriptionList[index].topic.toString()),
+                          (_commandList[_subscriptionList[index]
+                                      .topic
+                                      .toString()] ??
+                                  [])
+                              .isNotEmpty),
                       confirmDismiss: (direction) async {
                         return await showDialog(
                           context: context,
@@ -204,6 +236,139 @@ class _SubscribePageState extends State<SubscribePage> {
               },
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void addNewCommand(String streamName) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Subscribe to a new topic'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Form(
+                    key: _subscribeKey,
+                    child: Column(
+                      children: [
+                        Text('Name of the matching message content'),
+                        TextFormField(
+                          controller: _commandProcController,
+                          validator: (value) =>
+                              value.isEmpty ? 'Please enter a value' : null,
+                        ),
+                        Divider(),
+                        Text('System Command to run'),
+                        TextFormField(
+                          controller: _commandController,
+                          validator: (value) =>
+                              value.isEmpty ? 'Please enter a value' : null,
+                        ),
+                      ],
+                    )),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Add'),
+              onPressed: () {
+                if (_subscribeKey.currentState.validate()) {
+                  Navigator.of(context).pop(
+                      [_commandProcController.text, _commandController.text]);
+                  setState(() {
+                    try {
+                      _commandList[streamName].addAll({
+                        SystemCommand(_commandProcController.text,
+                            _commandController.text)
+                      });
+                    } catch (e) {
+                      _commandList.addAll({
+                        streamName: [
+                          SystemCommand(_commandProcController.text,
+                              _commandController.text)
+                        ]
+                      });
+                    }
+                  });
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void removeCommand(String streamName) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, StateSetter setState) {
+            return AlertDialog(
+              title: Text('Remove a system command'),
+              content: Container(
+                width: 800,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _commandList[streamName].length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return Card(
+                      child: ListTile(
+                        title:
+                            Text(_commandList[streamName][index].commandProc),
+                        subtitle:
+                            Text(_commandList[streamName][index].commandData),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete_forever_rounded),
+                          onPressed: () {
+                            return showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text("Confirm"),
+                                  content: const Text(
+                                      "Are you sure you wish to delete this item?"),
+                                  actions: <Widget>[
+                                    FlatButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            _commandList[streamName]
+                                                .removeAt(index);
+                                          });
+                                          Navigator.of(context).pop(true);
+                                        },
+                                        child: const Text("DELETE")),
+                                    FlatButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: const Text("CANCEL"),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Done'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
         );
       },
     );
