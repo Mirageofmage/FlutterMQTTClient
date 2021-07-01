@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mac_notifications/mac_notifications.dart';
+import 'package:macos_ui/macos_ui.dart';
 import 'connect.dart';
 
 void main() {
@@ -11,10 +12,10 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
+    return MacosApp(
+      title: 'MQTT Notifier',
+      theme: MacosThemeData.light().copyWith(
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: MyHomePage(title: 'Connect to MQTT Broker'),
     );
@@ -42,8 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
           identifier: 'mqtt-client${DateTime.now().millisecondsSinceEpoch}',
           title: 'Hello There!',
           subtitle: "You're probably wondering what this does.",
-          informative:
-              "You'll see soon enough 😉",
+          informative: "You'll see soon enough 😉",
         ),
       );
     } on PlatformException {}
@@ -51,65 +51,116 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Form(
-          key: _loginFormKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 50),
-            child: Column(children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                child: TextFormField(
-                  controller: _addressKey,
-                  decoration: InputDecoration(labelText: "MQTT Broker Address"),
-                  validator: (String s) {
-                    return s.isEmpty ? 'Please enter an address' : null;
-                  },
-                ),
-              ),
-              TextFormField(
-                controller: _unameKey,
-                decoration: InputDecoration(labelText: "MQTT Broker Username"),
-              ),
-              TextFormField(
-                controller: _passwordKey,
-                decoration: InputDecoration(labelText: "MQTT Broker Password"),
-                obscureText: true,
-              ),
-              SizedBox(height: 50, width: 1),
-              RaisedButton(
-                child: Text("Connect to MQTT Broker"),
-                onPressed: () => {
-                  if (_loginFormKey.currentState.validate())
-                    {
-                      MacNotifications.showNotification(
-                        MacNotificationOptions(
-                          identifier:
-                              'mqtt-client${DateTime.now().millisecondsSinceEpoch}',
-                          title: 'Connecting to ${_addressKey.value.text}',
-                          subtitle: 'With username ${_unameKey.value.text}',
+    return MacosScaffold(
+      titleBar: TitleBar(child: Text(widget.title)),
+      children: <Widget>[
+        ContentArea(
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              padding: EdgeInsets.all(20),
+              child: Center(
+                // Center is a layout widget. It takes a single child and positions it
+                // in the middle of the parent.
+                child: Form(
+                  key: _loginFormKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 50),
+                    child: Column(children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        child: MacosTextField(
+                          controller: _addressKey,
+                          placeholder: "MQTT Broker Address",
+                          // validator: (String s) {
+                          //   return s.isEmpty ? 'Please enter an address' : null;
+                          // },
                         ),
                       ),
-                      Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => ConnectPage(_addressKey.value.text, _unameKey.value.text, _passwordKey.value.text)))
-                    }
-                },
+                      MacosTextField(
+                        controller: _unameKey,
+                        placeholder: "MQTT Broker Username",
+                      ),
+                      MacosTextField(
+                        controller: _passwordKey,
+                        placeholder: "MQTT Broker Password",
+                        obscureText: true,
+                      ),
+                      SizedBox(height: 50, width: 1),
+                      PushButton(
+                        child: Text("Connect to MQTT Broker"),
+                        buttonSize: ButtonSize.large,
+                        onPressed: () => {
+                          if (_loginFormKey.currentState.validate())
+                            {
+                              if (_addressKey.value.text.isNotEmpty)
+                                {
+                                  MacNotifications.showNotification(
+                                    MacNotificationOptions(
+                                      identifier:
+                                          'mqtt-client${DateTime.now().millisecondsSinceEpoch}',
+                                      title:
+                                          'Connecting to ${_addressKey.value.text}',
+                                      subtitle:
+                                          'With username ${_unameKey.value.text}',
+                                    ),
+                                  ),
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (BuildContext context) =>
+                                              ConnectPage(
+                                                  _addressKey.value.text.trim(),
+                                                  _unameKey.value.text.trim(),
+                                                  _passwordKey.value.text.trim())))
+                                }
+                              else
+                                {
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) => MacosAlertDialog(
+                                      appIcon: FlutterLogo(
+                                        size: 56,
+                                      ),
+                                      title: Text(
+                                        'An address is required',
+                                        style: MacosTheme.of(context)
+                                            .typography
+                                            .headline,
+                                      ),
+                                      message: Text(
+                                        'Please type an address in the field',
+                                        textAlign: TextAlign.center,
+                                        style: MacosTheme.of(context)
+                                            .typography
+                                            .headline,
+                                      ),
+                                      primaryButton: PushButton(
+                                        buttonSize: ButtonSize.large,
+                                        child: Text('Ok'),
+                                        onPressed: () { Navigator.pop(context); },
+                                      ),
+                                    ),
+                                  )
+                                }
+                            }
+                        },
+                      ),
+                    ]),
+                  ),
+                ),
               ),
-            ]),
-          ),
+            );
+          },
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.connect_without_contact),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ],
+
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: _incrementCounter,
+      //   tooltip: 'Increment',
+      //   child: Icon(Icons.connect_without_contact),
+      // ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

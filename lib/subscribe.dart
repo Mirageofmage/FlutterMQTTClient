@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mac_notifications/mac_notifications.dart';
+import 'package:macos_ui/macos_ui.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:mqttclient/SystemCommand.dart';
@@ -24,7 +25,7 @@ class _SubscribePageState extends State<SubscribePage> {
 
   var shell = Shell();
 
-  List<Subscription> _subscriptionList = new List<Subscription>();
+  List<Subscription> _subscriptionList = [];
   Map<String, String> _messageList = new Map<String, String>();
   Map<String, List<SystemCommand>> _commandList =
       new Map<String, List<SystemCommand>>();
@@ -114,92 +115,138 @@ class _SubscribePageState extends State<SubscribePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.client.server),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add_alert),
-            onPressed: addNewSubscription,
-          )
-        ],
-      ),
-      body: Container(
-        width: double.infinity,
-        child: Row(
-          children: [
-            //Text(widget.client.server),
-            //widget.client.subscriptionsManager.subscriptions
-            Expanded(
-              child: SizedBox(
-                height: 2000,
-                child: ListView.builder(
-                  //ListView.separated
-                  itemCount: _subscriptionList.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return Dismissible(
-                      background: Container(
-                        color: Colors.red,
-                      ),
-                      key: Key(_subscriptionList[index]
-                          .createdTime
-                          .toUtc()
-                          .toIso8601String()),
-                      child: TopicDisplay(
-                          _subscriptionList[index].topic.toString(),
-                          (_messageList[_subscriptionList[index]
-                                      .topic
-                                      .toString()] ??
-                                  "No Messages Received")
-                              .toString(),
-                          (s) => addNewCommand(
-                              _subscriptionList[index].topic.toString()),
-                          (s) => removeCommand(
-                              _subscriptionList[index].topic.toString()),
-                          (_commandList[_subscriptionList[index]
-                                      .topic
-                                      .toString()] ??
-                                  [])
-                              .isNotEmpty),
-                      confirmDismiss: (direction) async {
-                        return await showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text("Confirm"),
-                              content: const Text(
-                                  "Are you sure you wish to delete this item?"),
-                              actions: <Widget>[
-                                FlatButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(true),
-                                    child: const Text("DELETE")),
-                                FlatButton(
-                                  onPressed: () =>
-                                      Navigator.of(context).pop(false),
-                                  child: const Text("CANCEL"),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                      onDismissed: (direction) {
-                        setState(() {
-                          widget.client.unsubscribe(
-                              _subscriptionList[index].topic.toString());
-                          _subscriptionList.removeAt(index);
-                        });
-                      },
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
+    return MacosScaffold(
+        titleBar: TitleBar(
+          child: Text(widget.client.server),
+          // actions: [
+          //   IconButton(
+          //     icon: Icon(Icons.add_alert),
+          //     onPressed: addNewSubscription,
+          //   )
+          // ],
         ),
-      ),
-    );
+        sidebar: Sidebar(
+          minWidth: 125,
+          isResizable: false,
+          startWidth: 125,
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  PushButton(
+                    child: Text("Subscribe"),
+                    buttonSize: ButtonSize.large,
+                    onPressed: addNewSubscription,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(5),
+                  ),
+                  PushButton(
+                    color: Colors.red,
+                    child: Text("Disconnect"),
+                    buttonSize: ButtonSize.large,
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        children: <Widget>[
+          ContentArea(
+            builder: (context, scrollController) {
+              return SingleChildScrollView(
+                controller: scrollController,
+                padding: EdgeInsets.all(20),
+                child: Container(
+                  width: double.infinity,
+                  child: Row(
+                    children: [
+                      //Text(widget.client.server),
+                      //widget.client.subscriptionsManager.subscriptions
+                      Expanded(
+                        child: SizedBox(
+                          height: 2000,
+                          child: ListView.builder(
+                            //ListView.separated
+                            itemCount: _subscriptionList.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return Dismissible(
+                                background: Container(
+                                  color: Colors.red,
+                                ),
+                                key: Key(_subscriptionList[index]
+                                    .createdTime
+                                    .toUtc()
+                                    .toIso8601String()),
+                                child: TopicDisplay(
+                                    _subscriptionList[index].topic.toString(),
+                                    (_messageList[_subscriptionList[index]
+                                                .topic
+                                                .toString()] ??
+                                            "No Messages Received")
+                                        .toString(),
+                                    (s) => addNewCommand(
+                                        _subscriptionList[index]
+                                            .topic
+                                            .toString()),
+                                    (s) => removeCommand(
+                                        _subscriptionList[index]
+                                            .topic
+                                            .toString()),
+                                    (_commandList[_subscriptionList[index]
+                                                .topic
+                                                .toString()] ??
+                                            [])
+                                        .isNotEmpty),
+                                confirmDismiss: (direction) async {
+                                  return await showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text("Confirm"),
+                                        content: const Text(
+                                            "Are you sure you wish to delete this item?"),
+                                        actions: <Widget>[
+                                          TextButton(
+                                              onPressed: () =>
+                                                  Navigator.of(context)
+                                                      .pop(true),
+                                              child: const Text("DELETE")),
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.of(context)
+                                                    .pop(false),
+                                            child: const Text("CANCEL"),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                                onDismissed: (direction) {
+                                  setState(() {
+                                    widget.client.unsubscribe(
+                                        _subscriptionList[index]
+                                            .topic
+                                            .toString());
+                                    _subscriptionList.removeAt(index);
+                                  });
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ]);
   }
 
   void addNewSubscription() {
@@ -334,7 +381,7 @@ class _SubscribePageState extends State<SubscribePage> {
                                   content: const Text(
                                       "Are you sure you wish to delete this item?"),
                                   actions: <Widget>[
-                                    FlatButton(
+                                    TextButton(
                                         onPressed: () {
                                           setState(() {
                                             _commandList[streamName]
@@ -343,7 +390,7 @@ class _SubscribePageState extends State<SubscribePage> {
                                           Navigator.of(context).pop(true);
                                         },
                                         child: const Text("DELETE")),
-                                    FlatButton(
+                                    TextButton(
                                       onPressed: () =>
                                           Navigator.of(context).pop(false),
                                       child: const Text("CANCEL"),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:macos_ui/macos_ui.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:mqttclient/subscribe.dart';
@@ -31,7 +32,7 @@ class _ConnectPageState extends State<ConnectPage> {
 
     d.listen((event) {
       setState(() {
-        if(event.returnCode == MqttConnectReturnCode.badUsernameOrPassword)
+        if (event.returnCode == MqttConnectReturnCode.badUsernameOrPassword)
           print("Bad Username or Password");
       });
 
@@ -51,23 +52,34 @@ class _ConnectPageState extends State<ConnectPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Attempting to Connect..."),
-      ),
-      body: Container(
-        width: double.infinity,
-        child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text("Attempting to connect to ${widget.address}"),
-              Padding(
-                padding: const EdgeInsets.all(45),
-                child: LinearProgressIndicator(),
-              )
-            ]),
-      ),
+    return MacosScaffold(
+      titleBar: TitleBar(child: Text("Attempting to Connect...")),
+      children: <Widget>[
+        ContentArea(
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              padding: EdgeInsets.all(20),
+              child: Container(
+                width: double.infinity,
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text("Attempting to connect to ${widget.address}"),
+                      Padding(
+                        padding: const EdgeInsets.all(45),
+                        child: LinearProgressIndicator(),
+                      ),
+                      PushButton(child: Text("Cancel Connection"), buttonSize: ButtonSize.large, onPressed: (){
+                        Navigator.pop(context);
+                      },),
+                    ]),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }
