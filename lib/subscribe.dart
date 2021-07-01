@@ -3,6 +3,8 @@ import 'package:mac_notifications/mac_notifications.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:mqtt_client/mqtt_browser_client.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:mqttclient/SystemCommand.dart';
 import 'package:mqttclient/TopicWidget.dart';
 import 'package:process_run/shell.dart';
@@ -13,7 +15,7 @@ class SubscribePage extends StatefulWidget {
 
   SubscribePage(this.client);
 
-  final MqttServerClient client;
+  final MqttClient client;
 }
 
 class _SubscribePageState extends State<SubscribePage> {
@@ -23,7 +25,7 @@ class _SubscribePageState extends State<SubscribePage> {
   var _commandProcController = new TextEditingController();
   var _commandController = new TextEditingController();
 
-  var shell = Shell();
+  var shell;
 
   List<Subscription> _subscriptionList = [];
   Map<String, String> _messageList = new Map<String, String>();
@@ -38,12 +40,15 @@ class _SubscribePageState extends State<SubscribePage> {
 
   @override
   void initState() {
-    MacNotifications.showNotification(
-      MacNotificationOptions(
-          identifier: 'mqtt-client${DateTime.now().millisecondsSinceEpoch}',
-          title: 'Connected Successfully',
-          subtitle: 'Successfully connected to ${widget.client.server}'),
-    );
+    if (!kIsWeb) {
+      shell = Shell();
+      MacNotifications.showNotification(
+        MacNotificationOptions(
+            identifier: 'mqtt-client${DateTime.now().millisecondsSinceEpoch}',
+            title: 'Connected Successfully',
+            subtitle: 'Successfully connected to ${widget.client.server}'),
+      );
+    }
 
     widget.client.onSubscribed = onSubrcribed;
     widget.client.onSubscribeFail = subscribeFail;
@@ -59,13 +64,15 @@ class _SubscribePageState extends State<SubscribePage> {
 
       print('Received message:$payload from topic: ${c[0].topic}>');
 
-      MacNotifications.showNotification(
-        MacNotificationOptions(
-          identifier: 'mqtt-client${DateTime.now().millisecondsSinceEpoch}',
-          title: 'Message recieved on ${c[0].topic}',
-          subtitle: 'Message contents: "$payload"',
-        ),
-      );
+      if (!kIsWeb) {
+        MacNotifications.showNotification(
+          MacNotificationOptions(
+            identifier: 'mqtt-client${DateTime.now().millisecondsSinceEpoch}',
+            title: 'Message recieved on ${c[0].topic}',
+            subtitle: 'Message contents: "$payload"',
+          ),
+        );
+      }
 
       setState(() {
         _messageList.addAll({c[0].topic: payload});
@@ -75,13 +82,16 @@ class _SubscribePageState extends State<SubscribePage> {
         if (e.commandProc == payload) {
           print("Running command");
           shell.run(e.commandData);
-          MacNotifications.showNotification(
-            MacNotificationOptions(
-              identifier: 'mqtt-client${DateTime.now().millisecondsSinceEpoch}',
-              title: '${c[0].topic}: Running System Command',
-              subtitle: 'Matching Message Recieved',
-            ),
-          );
+          if (!kIsWeb) {
+            MacNotifications.showNotification(
+              MacNotificationOptions(
+                identifier:
+                    'mqtt-client${DateTime.now().millisecondsSinceEpoch}',
+                title: '${c[0].topic}: Running System Command',
+                subtitle: 'Matching Message Recieved',
+              ),
+            );
+          }
         }
       }
     });
@@ -105,12 +115,14 @@ class _SubscribePageState extends State<SubscribePage> {
   }
 
   void autoReconnected() {
-    MacNotifications.showNotification(
-      MacNotificationOptions(
-          identifier: 'mqtt-client${DateTime.now().millisecondsSinceEpoch}',
-          title: 'Reconnected',
-          subtitle: 'Automatically reconnected to ${widget.client.server}'),
-    );
+    if (!kIsWeb) {
+      MacNotifications.showNotification(
+        MacNotificationOptions(
+            identifier: 'mqtt-client${DateTime.now().millisecondsSinceEpoch}',
+            title: 'Reconnected',
+            subtitle: 'Automatically reconnected to ${widget.client.server}'),
+      );
+    }
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mac_notifications/mac_notifications.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:macos_ui/macos_ui.dart';
 import 'connect.dart';
 
@@ -15,6 +16,9 @@ class MyApp extends StatelessWidget {
     return MacosApp(
       title: 'MQTT Notifier',
       theme: MacosThemeData.light().copyWith(
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      darkTheme: MacosThemeData.dark().copyWith(
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: MyHomePage(title: 'Connect to MQTT Broker'),
@@ -96,16 +100,17 @@ class _MyHomePageState extends State<MyHomePage> {
                             {
                               if (_addressKey.value.text.isNotEmpty)
                                 {
-                                  MacNotifications.showNotification(
-                                    MacNotificationOptions(
-                                      identifier:
-                                          'mqtt-client${DateTime.now().millisecondsSinceEpoch}',
-                                      title:
-                                          'Connecting to ${_addressKey.value.text}',
-                                      subtitle:
-                                          'With username ${_unameKey.value.text}',
+                                  if (!kIsWeb)
+                                    MacNotifications.showNotification(
+                                      MacNotificationOptions(
+                                        identifier:
+                                            'mqtt-client${DateTime.now().millisecondsSinceEpoch}',
+                                        title:
+                                            'Connecting to ${_addressKey.value.text}',
+                                        subtitle:
+                                            'With username ${_unameKey.value.text}',
+                                      ),
                                     ),
-                                  ),
                                   Navigator.push(
                                       context,
                                       MaterialPageRoute(
@@ -113,7 +118,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                               ConnectPage(
                                                   _addressKey.value.text.trim(),
                                                   _unameKey.value.text.trim(),
-                                                  _passwordKey.value.text.trim())))
+                                                  _passwordKey.value.text
+                                                      .trim())))
                                 }
                               else
                                 {
@@ -139,7 +145,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                       primaryButton: PushButton(
                                         buttonSize: ButtonSize.large,
                                         child: Text('Ok'),
-                                        onPressed: () { Navigator.pop(context); },
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
                                       ),
                                     ),
                                   )

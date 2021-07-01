@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class TopicDisplay extends StatelessWidget {
   TopicDisplay(this._topicName, this._recentMessage, this.addCommandFunc,
@@ -29,10 +30,10 @@ class TopicDisplay extends StatelessWidget {
                       onPressed: () => removeCommandFunc(_topicName),
                     )
                   : Container(),
-              IconButton(
+              !kIsWeb ? IconButton(
                 icon: Icon(Icons.access_alarm_sharp),
                 onPressed: () => addCommandFunc(_topicName),
-              ),
+              ) : Text("Download for full features"),
             ],
           ),
         ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:mqtt_client/mqtt_browser_client.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:mqttclient/subscribe.dart';
 
 class ConnectPage extends StatefulWidget {
@@ -17,15 +19,25 @@ class ConnectPage extends StatefulWidget {
 
 class _ConnectPageState extends State<ConnectPage> {
   MqttServerClient client;
+  MqttBrowserClient browserClient;
   Stream<MqttClientConnectionStatus> d;
 
   @override
   void initState() {
     try {
-      client = MqttServerClient(widget.address, 'JerbbMQTTClient');
-      client.onConnected = onConnect;
-      client.autoReconnect = true;
-      d = client.connect(widget.username, widget.password).asStream();
+      if (kIsWeb) {
+        browserClient =
+            MqttBrowserClient('ws://${widget.address}', 'JerbbMQTTSite');
+        browserClient.onConnected = onConnectBrowser;
+        browserClient.autoReconnect = true;
+        browserClient.port = 8080;
+        d = browserClient.connect(widget.username, widget.password).asStream();
+      } else {
+        client = MqttServerClient(widget.address, 'JerbbMQTTClient');
+        client.onConnected = onConnect;
+        client.autoReconnect = true;
+        d = client.connect(widget.username, widget.password).asStream();
+      }
     } catch (e) {
       print(e.toString());
     }
@@ -34,6 +46,33 @@ class _ConnectPageState extends State<ConnectPage> {
       setState(() {
         if (event.returnCode == MqttConnectReturnCode.badUsernameOrPassword)
           print("Bad Username or Password");
+        if (event.returnCode == MqttConnectReturnCode.brokerUnavailable) {
+          Navigator.pop(context);
+          showDialog(
+            context: context,
+            builder: (_) => MacosAlertDialog(
+              appIcon: FlutterLogo(
+                size: 56,
+              ),
+              title: Text(
+                'An error has occured',
+                style: MacosTheme.of(context).typography.headline,
+              ),
+              message: Text(
+                event.returnCode.toString(),
+                textAlign: TextAlign.center,
+                style: MacosTheme.of(context).typography.headline,
+              ),
+              primaryButton: PushButton(
+                buttonSize: ButtonSize.large,
+                child: Text('Ok'),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+          );
+        }
       });
 
       print(event.returnCode);
@@ -48,6 +87,14 @@ class _ConnectPageState extends State<ConnectPage> {
         context,
         MaterialPageRoute(
             builder: (BuildContext context) => SubscribePage(client)));
+  }
+
+  void onConnectBrowser() {
+    print("Connected to server, Changing Pages (Browser)");
+    Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (BuildContext context) => SubscribePage(browserClient)));
   }
 
   @override
@@ -71,9 +118,13 @@ class _ConnectPageState extends State<ConnectPage> {
                         padding: const EdgeInsets.all(45),
                         child: LinearProgressIndicator(),
                       ),
-                      PushButton(child: Text("Cancel Connection"), buttonSize: ButtonSize.large, onPressed: (){
-                        Navigator.pop(context);
-                      },),
+                      PushButton(
+                        child: Text("Cancel Connection"),
+                        buttonSize: ButtonSize.large,
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
                     ]),
               ),
             );
