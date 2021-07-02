@@ -63898,9 +63898,9 @@ aK:function(){return new K.ya(C.n)}}
 K.ya.prototype={
 aU:function(){var s,r,q,p,o=this
 try{r=o.a
-P.ej("Connecting to ws://"+r.c+":"+r.f)
+P.ej("Connecting to "+r.c+":"+r.f)
 r=o.a
-q=new E.Y6("ws://"+r.c,"JerbbMQTTSite",0,new L.et(C.aO,C.bm,C.cq))
+q=new E.Y6(r.c,"JerbbMQTTSite",0,new L.et(C.aO,C.bm,C.cq))
 q.b=1883
 o.e=q
 q.dy=o.gaaU()
@@ -63985,7 +63985,7 @@ U:function(a,b){var s=null,r=M.afS(L.bx(this.a.c,s,s,s,s,s,s))
 return M.afd(H.b([new Z.ov(new F.a8G(this),s)],t.a),s,r)}}
 F.a8G.prototype={
 $2:function(a,b){var s=null,r=this.a,q=t.a
-return E.x3(T.tw(A.aeV(C.fS,new T.cl(C.rz,T.lM(H.b([new T.cl(C.rr,T.wH(H.b([T.u9(Z.Xz(r.e,!1,"MQTT Broker Address"),10),T.u9(Z.Xz(r.x,!1,"1883"),1)],q),C.at,C.aE),s),Z.Xz(r.f,!1,"MQTT Broker Username"),Z.Xz(r.r,!0,"MQTT Broker Password"),T.im(s,50,1),S.mK(C.bx,L.bx("Connect to MQTT Broker",s,s,s,s,s,s),s,new F.a8F(r,a))],q),C.at,C.bC,C.aE),s),r.d),s,s),b,new V.av(20,20,20,20))},
+return E.x3(T.tw(A.aeV(C.fS,new T.cl(C.rz,T.lM(H.b([new T.cl(C.rr,T.wH(H.b([T.u9(Z.Xz(r.e,!1,"MQTT Broker Address (Include ws(s)://)"),10),T.u9(Z.Xz(r.x,!1,"1883"),1)],q),C.at,C.aE),s),Z.Xz(r.f,!1,"MQTT Broker Username"),Z.Xz(r.r,!0,"MQTT Broker Password"),T.im(s,50,1),S.mK(C.bx,L.bx("Connect to MQTT Broker",s,s,s,s,s,s),s,new F.a8F(r,a))],q),C.at,C.bC,C.aE),s),r.d),s,s),b,new V.av(20,20,20,20))},
 $S:66}
 F.a8F.prototype={
 $0:function(){var s,r,q=P.b3(t.BI),p=this.a
