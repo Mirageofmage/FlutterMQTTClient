@@ -39,6 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
   var _addressKey = new TextEditingController();
   var _unameKey = new TextEditingController();
   var _passwordKey = new TextEditingController();
+  var _portKey = new TextEditingController();
 
   void _incrementCounter() {
     try {
@@ -74,12 +75,29 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Column(children: <Widget>[
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 15),
-                        child: MacosTextField(
-                          controller: _addressKey,
-                          placeholder: "MQTT Broker Address",
-                          // validator: (String s) {
-                          //   return s.isEmpty ? 'Please enter an address' : null;
-                          // },
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 10,
+                              child: MacosTextField(
+                                controller: _addressKey,
+                                placeholder: "MQTT Broker Address",
+                                // validator: (String s) {
+                                //   return s.isEmpty ? 'Please enter an address' : null;
+                                // },
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: MacosTextField(
+                                controller: _portKey,
+                                placeholder: "1883",
+                                // validator: (String s) {
+                                //   return s.isEmpty ? 'Please enter an address' : null;
+                                // },
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       MacosTextField(
@@ -119,7 +137,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                                   _addressKey.value.text.trim(),
                                                   _unameKey.value.text.trim(),
                                                   _passwordKey.value.text
-                                                      .trim())))
+                                                      .trim(),
+                                                  port: int.parse(
+                                                      _portKey.value.text != "" ? _portKey.value.text : "1883"))))
                                 }
                               else
                                 {

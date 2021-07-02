@@ -4,6 +4,7 @@ import 'package:macos_ui/macos_ui.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:mqtt_client/mqtt_browser_client.dart';
+import 'package:universal_html/js.dart' as js;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:mqttclient/SystemCommand.dart';
 import 'package:mqttclient/TopicWidget.dart';
@@ -48,6 +49,8 @@ class _SubscribePageState extends State<SubscribePage> {
             title: 'Connected Successfully',
             subtitle: 'Successfully connected to ${widget.client.server}'),
       );
+    } else {
+      showNotification('Connected Successfully', 'Successfully connected to ${widget.client.server}');
     }
 
     widget.client.onSubscribed = onSubrcribed;
@@ -72,6 +75,8 @@ class _SubscribePageState extends State<SubscribePage> {
             subtitle: 'Message contents: "$payload"',
           ),
         );
+      } else {
+        showNotification ('Message recieved on ${c[0].topic}', 'Message contents: "$payload"');
       }
 
       setState(() {
@@ -122,7 +127,21 @@ class _SubscribePageState extends State<SubscribePage> {
             title: 'Reconnected',
             subtitle: 'Automatically reconnected to ${widget.client.server}'),
       );
+    } else {
+      showNotification('Reconnected', 'Automatically reconnected to ${widget.client.server}');
     }
+  }
+
+  void callAlert (){
+    js.context.callMethod('alertMessage', ['Flutter is calling upon JavaScript!']);
+  }
+
+  void askPerms(){
+    js.context.callMethod('askPerms');
+  }
+
+  void showNotification(String title, String body){
+    js.context.callMethod('showNotification', [title, body]);
   }
 
   @override
@@ -161,6 +180,19 @@ class _SubscribePageState extends State<SubscribePage> {
                     buttonSize: ButtonSize.large,
                     onPressed: () => Navigator.pop(context),
                   ),
+
+                  kIsWeb ? Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(5),
+                      ),
+                      PushButton(
+                        child: Text("Test Notification"),
+                        buttonSize: ButtonSize.large,
+                        onPressed: () => showNotification('Title of notification', 'Body of notificaiton'),
+                      ),
+                    ],
+                  ) : null,
                 ],
               ),
             );
