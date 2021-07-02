@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mac_notifications/mac_notifications.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:mqtt_client/mqtt_client.dart';
-import 'package:mqtt_client/mqtt_server_client.dart';
-import 'package:mqtt_client/mqtt_browser_client.dart';
 import 'package:universal_html/js.dart' as js;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:mqttclient/SystemCommand.dart';

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:mac_notifications/mac_notifications.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:macos_ui/macos_ui.dart';
@@ -41,18 +40,18 @@ class _MyHomePageState extends State<MyHomePage> {
   var _passwordKey = new TextEditingController();
   var _portKey = new TextEditingController();
 
-  void _incrementCounter() {
-    try {
-      MacNotifications.showNotification(
-        MacNotificationOptions(
-          identifier: 'mqtt-client${DateTime.now().millisecondsSinceEpoch}',
-          title: 'Hello There!',
-          subtitle: "You're probably wondering what this does.",
-          informative: "You'll see soon enough 😉",
-        ),
-      );
-    } on PlatformException {}
-  }
+  // void _incrementCounter() {
+  //   try {
+  //     MacNotifications.showNotification(
+  //       MacNotificationOptions(
+  //         identifier: 'mqtt-client${DateTime.now().millisecondsSinceEpoch}',
+  //         title: 'Hello There!',
+  //         subtitle: "You're probably wondering what this does.",
+  //         informative: "You'll see soon enough 😉",
+  //       ),
+  //     );
+  //   } on PlatformException {}
+  // }
 
   @override
   Widget build(BuildContext context) {
