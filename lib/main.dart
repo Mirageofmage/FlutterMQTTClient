@@ -80,7 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               flex: 10,
                               child: MacosTextField(
                                 controller: _addressKey,
-                                placeholder: "MQTT Broker Address",
+                                placeholder: kIsWeb ? "MQTT Broker Address (Include ws(s)://)" : "MQTT Broker Address",
                                 // validator: (String s) {
                                 //   return s.isEmpty ? 'Please enter an address' : null;
                                 // },

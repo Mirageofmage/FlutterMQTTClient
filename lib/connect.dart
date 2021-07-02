@@ -27,9 +27,9 @@ class _ConnectPageState extends State<ConnectPage> {
   void initState() {
     try {
       if (kIsWeb) {
-        print('Connecting to ws://${widget.address}:${widget.port}');
+        print('Connecting to ${widget.address}:${widget.port}');
         browserClient =
-            MqttBrowserClient('ws://${widget.address}', 'JerbbMQTTSite');
+            MqttBrowserClient('${widget.address}', 'JerbbMQTTSite');
         browserClient.onConnected = onConnectBrowser;
         browserClient.autoReconnect = true;
         browserClient.port = widget.port;
